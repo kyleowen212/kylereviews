@@ -3,10 +3,5 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npx prisma db push && node prisma/seed.js; npm start"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
-
-[[mounts]]
-mountPath = "/app/prisma"
-name = "sqlite-data"
