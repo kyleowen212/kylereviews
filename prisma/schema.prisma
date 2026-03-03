@@ -1,0 +1,94 @@
+// Kyle.Reviews - Database Schema
+// Uses SQLite for simplicity. Single file, zero config.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// Categories - extensible review types
+// ─────────────────────────────────────────────
+model Category {
+  id          String   @id @default(cuid())
+  slug        String   @unique  // "movie", "book", "album", etc.
+  name        String              // "Movie", "Book", "Album"
+  icon        String   @default("📌") // Emoji icon for UI
+  // JSON schema defining which metadata fields this category uses
+  // e.g. { "director": "text", "runtime": "text", "genre": "text" }
+  metaFields  String   @default("{}")
+  // Which external API to use for auto-import
+  // "tmdb" | "openlibrary" | "musicbrainz" | "podcastindex" | "none"
+  apiSource   String   @default("none")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  reviews     Review[]
+  suggestions Suggestion[]
+}
+
+// ─────────────────────────────────────────────
+// Reviews - the core content
+// ─────────────────────────────────────────────
+model Review {
+  id          String   @id @default(cuid())
+  title       String              // Title of the item being reviewed
+  slug        String   @unique    // URL-friendly slug
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  // Review content (supports markdown)
+  body        String   @default("")
+
+  // Auto-fetched metadata stored as JSON
+  // e.g. { "director": "Denis Villeneuve", "runtime": "155 min", "genre": "Sci-Fi" }
+  metadata    String   @default("{}")
+
+  // Images
+  coverImage  String?  // Auto-fetched poster/cover URL or uploaded path
+  personalPhotos String @default("[]") // JSON array of uploaded photo paths
+
+  // Embedded media
+  embedUrl    String?  // YouTube trailer URL, Qobuz/Spotify embed URL, etc.
+  embedType   String?  // "youtube" | "qobuz" | "spotify" | "apple-music" | "none"
+
+  // Publishing
+  published   Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // If this review came from a suggestion
+  suggestionId String?  @unique
+  suggestion   Suggestion? @relation(fields: [suggestionId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// Suggestions - public recommendation inbox
+// ─────────────────────────────────────────────
+model Suggestion {
+  id          String    @id @default(cuid())
+  name        String               // Who suggested it
+  itemTitle   String               // What they're suggesting
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  message     String    @default("") // Why they recommend it
+  status      String    @default("new") // "new" | "reviewing" | "accepted" | "declined"
+  createdAt   DateTime  @default(now())
+
+  review      Review?   // If promoted to a review
+}
+
+// ─────────────────────────────────────────────
+// Admin user (just you)
+// ─────────────────────────────────────────────
+model Admin {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  password    String   // bcrypt hashed
+  createdAt   DateTime @default(now())
+}
