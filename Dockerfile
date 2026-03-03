@@ -16,6 +16,4 @@ RUN npx prisma db push --skip-generate 2>/dev/null; npm run build
 
 EXPOSE 3000
 
-# v2 - force cache bust
-COPY prisma/seed.js /app/prisma/seed.js
-CMD ["sh", "-c", "echo 'STARTING V2' && npx next start -H 0.0.0.0 -p ${PORT:-3000}"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate && node prisma/seed.js && npx next start -H 0.0.0.0 -p ${PORT:-3000}"]
