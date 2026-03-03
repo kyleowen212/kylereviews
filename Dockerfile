@@ -15,8 +15,10 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build Next.js
-RUN npm run build
+# Build Next.js (provide dummy DATABASE_URL so Prisma doesn't error during static analysis)
+ENV DATABASE_URL="file:./build-placeholder.db"
+RUN npx prisma db push --skip-generate 2>/dev/null; npm run build
+ENV DATABASE_URL=""
 
 # Expose port
 EXPOSE 3000
