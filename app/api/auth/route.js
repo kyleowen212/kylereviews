@@ -1,4 +1,5 @@
 // app/api/auth/route.js
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { verifyLogin, requireAuth } from '../../../lib/auth';
 

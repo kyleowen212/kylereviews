@@ -1,4 +1,5 @@
 // app/api/search/route.js
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { requireAuth } from '../../../lib/auth';
 import { searchExternal, getExternalDetails } from '../../../lib/external-apis';

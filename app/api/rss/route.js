@@ -2,6 +2,8 @@
 import { prisma } from '../../../lib/prisma';
 import { generateRSSFeed } from '../../../lib/rss';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req) {
   const reviews = await prisma.review.findMany({
     where: { published: true },

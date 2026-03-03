@@ -1,4 +1,5 @@
 // app/api/suggestions/route.js
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 import { requireAuth } from '../../../lib/auth';
