@@ -1,6 +1,6 @@
 // app/admin/layout.js
 export const metadata = {
-  title: 'Admin — Kyle.Reviews',
+  title: 'Admin — kyle.reviews',
 };
 
 export default function AdminLayout({ children }) {

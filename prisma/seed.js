@@ -1,7 +1,4 @@
 // prisma/seed.js
-// Seeds the database with default categories and an admin user.
-// Run: node prisma/seed.js
-
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
@@ -81,11 +78,12 @@ const categories = [
     name: 'Podcast',
     icon: '🎙️',
     sortOrder: 6,
-    apiSource: 'podcastindex',
+    apiSource: 'none',
     metaFields: JSON.stringify({
       host: { label: 'Host', type: 'text' },
       episode: { label: 'Episode', type: 'text' },
       network: { label: 'Network', type: 'text' },
+      feedUrl: { label: 'Feed URL', type: 'url' },
     }),
   },
   {
@@ -126,12 +124,64 @@ const categories = [
       purchaseUrl: { label: 'Purchase URL', type: 'url' },
     }),
   },
+  {
+    slug: 'live-event',
+    name: 'Live Event',
+    icon: '🎪',
+    sortOrder: 10,
+    apiSource: 'none',
+    metaFields: JSON.stringify({
+      venue: { label: 'Venue', type: 'text' },
+      location: { label: 'Location', type: 'text' },
+      date: { label: 'Date', type: 'text' },
+      performer: { label: 'Performer / Act', type: 'text' },
+      cost: { label: 'Cost', type: 'text' },
+      ticketUrl: { label: 'Ticket URL', type: 'url' },
+    }),
+  },
+  {
+    slug: 'link',
+    name: 'Link',
+    icon: '🔗',
+    sortOrder: 11,
+    apiSource: 'none',
+    metaFields: JSON.stringify({
+      url: { label: 'URL', type: 'url' },
+      source: { label: 'Source / Publication', type: 'text' },
+      author: { label: 'Author', type: 'text' },
+    }),
+  },
+  {
+    slug: 'game',
+    name: 'Game',
+    icon: '🎮',
+    sortOrder: 12,
+    apiSource: 'none',
+    metaFields: JSON.stringify({
+      platform: { label: 'Platform', type: 'text' },
+      developer: { label: 'Developer', type: 'text' },
+      genre: { label: 'Genre', type: 'text' },
+      year: { label: 'Year', type: 'text' },
+    }),
+  },
+  {
+    slug: 'application',
+    name: 'Application',
+    icon: '💻',
+    sortOrder: 13,
+    apiSource: 'none',
+    metaFields: JSON.stringify({
+      platform: { label: 'Platform', type: 'text' },
+      developer: { label: 'Developer', type: 'text' },
+      price: { label: 'Price', type: 'text' },
+      url: { label: 'URL', type: 'url' },
+    }),
+  },
 ];
 
 async function main() {
   console.log('Seeding database...');
 
-  // Create categories
   for (const cat of categories) {
     await prisma.category.upsert({
       where: { slug: cat.slug },
@@ -141,8 +191,6 @@ async function main() {
     console.log(`  ✓ Category: ${cat.name}`);
   }
 
-  // Create default admin user
-  // CHANGE THIS PASSWORD before deploying!
   const hashedPassword = await bcrypt.hash('changeme123', 12);
   await prisma.admin.upsert({
     where: { username: 'kyle' },
@@ -153,15 +201,9 @@ async function main() {
     },
   });
   console.log('  ✓ Admin user: kyle (password: changeme123)');
-
-  console.log('\nDone! Remember to change the admin password.');
+  console.log('\nDone!');
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch((e) => { console.error(e); process.exit(1); })
+  .finally(async () => { await prisma.$disconnect(); });

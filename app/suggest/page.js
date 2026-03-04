@@ -40,7 +40,7 @@ export default function SuggestPage() {
       <header className="border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <a href="/" className="font-display text-xl text-ink hover:text-accent transition-colors">
-            Kyle.Reviews
+            kyle.reviews
           </a>
         </div>
       </header>

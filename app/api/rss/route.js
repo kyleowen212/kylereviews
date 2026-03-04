@@ -1,8 +1,7 @@
 // app/api/rss/route.js
+export const dynamic = 'force-dynamic';
 import { prisma } from '../../../lib/prisma';
 import { generateRSSFeed } from '../../../lib/rss';
-
-export const dynamic = 'force-dynamic';
 
 export async function GET(req) {
   const reviews = await prisma.review.findMany({
@@ -12,7 +11,7 @@ export async function GET(req) {
     take: 50,
   });
 
-  const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
+  const siteUrl = process.env.SITE_URL || '';
   const feed = generateRSSFeed(reviews, siteUrl);
 
   const { searchParams } = new URL(req.url);

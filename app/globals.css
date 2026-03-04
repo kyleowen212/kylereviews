@@ -2,32 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #c4c4c4;
-  border-radius: 3px;
+/* Subtle grain texture on body */
+body {
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
 }
 
-/* Timeline dot animation */
-@keyframes pulse-dot {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-}
-
-.timeline-dot-active {
-  animation: pulse-dot 2s ease-in-out infinite;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c4c4c4; border-radius: 3px; }
 
 /* Card hover lift */
 .review-card {
@@ -38,38 +25,74 @@ html {
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
 
-/* Embed responsive container */
+/* Embed containers */
 .embed-container {
   position: relative;
-  padding-bottom: 56.25%; /* 16:9 */
+  padding-bottom: 56.25%;
   height: 0;
   overflow: hidden;
   border-radius: 8px;
 }
 .embed-container iframe {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   border: 0;
 }
-
-/* Music embed (shorter aspect ratio) */
 .embed-music {
   padding-bottom: 25%;
   min-height: 152px;
 }
 
-/* Category filter pills */
+/* Forest green accents for filter pills */
 .filter-pill {
   transition: all 0.15s ease;
 }
 .filter-pill:hover {
-  background-color: #c45d3e;
-  color: white;
+  border-color: #2d6a4f;
+  color: #2d6a4f;
 }
 .filter-pill.active {
-  background-color: #c45d3e;
+  background-color: #2d6a4f;
   color: white;
+  border-color: #2d6a4f;
+}
+
+/* Category badge colors - subtle tinted backgrounds */
+.cat-badge-movie { background: #fef3c7; color: #92400e; }
+.cat-badge-tv-show { background: #dbeafe; color: #1e40af; }
+.cat-badge-book { background: #ede9fe; color: #5b21b6; }
+.cat-badge-album { background: #fce7f3; color: #9d174d; }
+.cat-badge-song { background: #fce7f3; color: #9d174d; }
+.cat-badge-podcast { background: #fef9c3; color: #854d0e; }
+.cat-badge-recipe { background: #fce7f3; color: #be185d; }
+.cat-badge-experience { background: #d8f3dc; color: #2d6a4f; }
+.cat-badge-product { background: #e0e7ff; color: #3730a3; }
+.cat-badge-live-event { background: #fee2e2; color: #991b1b; }
+.cat-badge-link { background: #f0fdf4; color: #166534; }
+.cat-badge-game { background: #ecfdf5; color: #065f46; }
+.cat-badge-application { background: #f0f9ff; color: #0c4a6e; }
+
+/* Prose link styling */
+.prose a {
+  color: #2d6a4f;
+  text-decoration: underline;
+  text-decoration-color: #b7e4c7;
+  text-underline-offset: 2px;
+}
+.prose a:hover {
+  text-decoration-color: #2d6a4f;
+}
+
+/* Green dot logo accent */
+.logo-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #2d6a4f;
+  margin-left: 1px;
+  vertical-align: baseline;
+  position: relative;
+  top: -1px;
 }

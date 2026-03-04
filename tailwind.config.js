@@ -14,9 +14,12 @@ module.exports = {
       colors: {
         ink: '#1a1a1a',
         paper: '#faf9f6',
-        accent: '#c45d3e',    // warm terracotta
-        muted: '#8a8a8a',
-        border: '#e5e3df',
+        accent: '#2d6a4f',       // forest green
+        'accent-light': '#40916c',
+        'accent-wash': '#d8f3dc',
+        'accent-warm': '#c45d3e', // keep terracotta as secondary
+        muted: '#7c7c7c',
+        border: '#e2e0db',
       },
     },
   },

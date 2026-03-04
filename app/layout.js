@@ -2,7 +2,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Kyle.Reviews',
+  title: 'kyle.reviews',
   description: 'Recommendations for movies, books, music, and more.',
 };
 
@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
         <link
           rel="alternate"
           type="application/rss+xml"
-          title="Kyle.Reviews RSS Feed"
+          title="kyle.reviews RSS Feed"
           href="/api/rss"
         />
       </head>

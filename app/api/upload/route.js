@@ -1,0 +1,36 @@
+// app/api/upload/route.js
+export const dynamic = 'force-dynamic';
+import { NextResponse } from 'next/server';
+import { requireAuth } from '../../../lib/auth';
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
+
+export async function POST(req) {
+  const user = requireAuth(req);
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const formData = await req.formData();
+    const file = formData.get('file');
+    if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Generate unique filename
+    const ext = path.extname(file.name) || '.jpg';
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+
+    // Ensure upload directory exists
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    await mkdir(uploadDir, { recursive: true });
+
+    // Write file
+    await writeFile(path.join(uploadDir, filename), buffer);
+
+    return NextResponse.json({ url: `/uploads/${filename}` });
+  } catch (err) {
+    console.error('Upload error:', err);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+  }
+}
