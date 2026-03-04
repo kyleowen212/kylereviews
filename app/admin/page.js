@@ -264,7 +264,7 @@ function QuickPostForm({ categories, initialData, editMode, onSave, onCancel }) 
 
   const defaultForm = {
     title: '', body: '', metadata: {}, coverImage: '', personalPhotos: [],
-    embedUrl: '', embedType: '', published: true, publishedAt: '',
+    embedUrl: '', embedType: '', published: true, publishedAt: '', rating: '',
   };
 
   const [form, setForm] = useState(() => {
@@ -279,6 +279,7 @@ function QuickPostForm({ categories, initialData, editMode, onSave, onCancel }) 
         embedType: initialData.embedType || '',
         published: initialData.published ?? true,
         publishedAt: initialData.publishedAt ? new Date(initialData.publishedAt).toISOString().slice(0, 16) : '',
+        rating: initialData.rating != null ? String(initialData.rating) : '',
       };
     }
     return { ...defaultForm };
@@ -330,6 +331,7 @@ function QuickPostForm({ categories, initialData, editMode, onSave, onCancel }) 
         title: form.title, body: form.body, metadata: form.metadata,
         coverImage: form.coverImage || null, personalPhotos: form.personalPhotos,
         embedUrl: form.embedUrl || null, embedType: form.embedType || null,
+        rating: form.rating ? parseInt(form.rating, 10) : null,
         categoryId: selectedCategory?.id || form.categoryId,
         published: publish, publishedAt: form.publishedAt || undefined,
       });
@@ -427,6 +429,12 @@ function QuickPostForm({ categories, initialData, editMode, onSave, onCancel }) 
                 <input type="datetime-local" value={form.publishedAt} onChange={(e) => setForm({ ...form, publishedAt: e.target.value })}
                   className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30" />
               </div>
+              <div>
+                <label className="block text-xs font-medium text-muted mb-1 uppercase tracking-wide">Rating (0–100)</label>
+                <input type="number" min="0" max="100" value={form.rating} onChange={(e) => setForm({ ...form, rating: e.target.value })}
+                  placeholder="e.g. 85"
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30" />
+              </div>
             </div>
             <div className="space-y-3">
               <div>
@@ -455,7 +463,7 @@ function FullPostForm({ categories, initialData, editMode, onSave, onCancel }) {
 
   const defaultForm = {
     title: '', body: '', metadata: {}, coverImage: '', personalPhotos: [],
-    embedUrl: '', embedType: '', published: true, publishedAt: '',
+    embedUrl: '', embedType: '', published: true, publishedAt: '', rating: '',
   };
 
   const [form, setForm] = useState(() => {
@@ -470,6 +478,7 @@ function FullPostForm({ categories, initialData, editMode, onSave, onCancel }) {
         embedType: initialData.embedType || '',
         published: initialData.published ?? true,
         publishedAt: initialData.publishedAt ? new Date(initialData.publishedAt).toISOString().slice(0, 16) : '',
+        rating: initialData.rating != null ? String(initialData.rating) : '',
       };
     }
     return { ...defaultForm };
@@ -486,6 +495,7 @@ function FullPostForm({ categories, initialData, editMode, onSave, onCancel }) {
         title: form.title, body: form.body, metadata: meta,
         coverImage: form.coverImage || null, personalPhotos: form.personalPhotos,
         embedUrl: form.embedUrl || null, embedType: form.embedType || null,
+        rating: form.rating ? parseInt(form.rating, 10) : null,
         categoryId: selectedCategory?.id || form.categoryId,
         published: publish, publishedAt: form.publishedAt || undefined,
       });
@@ -523,12 +533,18 @@ function FullPostForm({ categories, initialData, editMode, onSave, onCancel }) {
         </div>
       )}
 
-      {/* Cover image + date row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Cover image + date + rating row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <CoverImageField value={form.coverImage} onChange={(v) => setForm({ ...form, coverImage: v })} />
         <div>
           <label className="block text-xs font-medium text-muted mb-1 uppercase tracking-wide">Publish Date</label>
           <input type="datetime-local" value={form.publishedAt} onChange={(e) => setForm({ ...form, publishedAt: e.target.value })}
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted mb-1 uppercase tracking-wide">Rating (0–100)</label>
+          <input type="number" min="0" max="100" value={form.rating} onChange={(e) => setForm({ ...form, rating: e.target.value })}
+            placeholder="e.g. 85"
             className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30" />
         </div>
       </div>

@@ -2,6 +2,14 @@
 // app/r/[slug]/ReviewDetail.js — Supports quick posts and full articles
 import ReactMarkdown from 'react-markdown';
 
+function getRatingColor(rating) {
+  if (rating >= 90) return 'bg-green-100 text-green-900';
+  if (rating >= 75) return 'bg-green-50 text-green-800';
+  if (rating >= 60) return 'bg-yellow-100 text-yellow-800';
+  if (rating >= 40) return 'bg-orange-100 text-orange-800';
+  return 'bg-red-100 text-red-800';
+}
+
 export default function ReviewDetail({ review }) {
   const meta = typeof review.metadata === 'string' ? JSON.parse(review.metadata) : (review.metadata || {});
   const photos = typeof review.personalPhotos === 'string' ? JSON.parse(review.personalPhotos) : (review.personalPhotos || []);
@@ -26,6 +34,9 @@ export default function ReviewDetail({ review }) {
             {review.category?.icon} {review.category?.name}
           </span>
           {isFullPost && <span className="text-xs bg-accent/10 text-accent px-1.5 py-0.5 rounded font-medium">Article</span>}
+          {review.rating != null && (
+            <span className={`text-sm font-bold px-2.5 py-0.5 rounded-full ${getRatingColor(review.rating)}`}>{review.rating}<span className="font-normal text-xs opacity-70">/100</span></span>
+          )}
           <span className="text-sm text-muted">
             {new Date(review.publishedAt || review.createdAt).toLocaleDateString('en-US', {
               month: 'long', day: 'numeric', year: 'numeric',

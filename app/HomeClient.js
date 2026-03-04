@@ -1,7 +1,55 @@
 'use client';
-// app/HomeClient.js — Public feed supporting both quick and full posts
-import { useState, useMemo } from 'react';
+// app/HomeClient.js — v5: collapsible filters, ratings, truncated body, see more badge
+import { useState, useMemo, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+
+function getRatingColor(rating) {
+  if (rating >= 90) return 'bg-green-100 text-green-900';
+  if (rating >= 75) return 'bg-green-50 text-green-800';
+  if (rating >= 60) return 'bg-yellow-100 text-yellow-800';
+  if (rating >= 40) return 'bg-orange-100 text-orange-800';
+  return 'bg-red-100 text-red-800';
+}
+
+// ─── Collapsible Filter Bar ───
+function FilterBar({ categories, activeCategory, onSelect }) {
+  const [expanded, setExpanded] = useState(false);
+  const rowRef = useRef(null);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => {
+    const el = rowRef.current;
+    if (el) setOverflows(el.scrollHeight > el.clientHeight + 4);
+  }, [categories]);
+
+  return (
+    <div className="relative">
+      <div ref={rowRef} className="flex flex-wrap gap-2 transition-all duration-300"
+        style={{ maxHeight: expanded ? '500px' : '40px', overflow: 'hidden' }}>
+        <button onClick={() => onSelect(null)}
+          className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all flex-shrink-0 ${
+            !activeCategory ? 'bg-accent text-white border-accent shadow-sm' : 'bg-white border-border hover:border-accent text-ink'
+          }`}>
+          All
+        </button>
+        {(categories || []).map((cat) => (
+          <button key={cat.slug} onClick={() => onSelect(cat.slug === activeCategory ? null : cat.slug)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all flex-shrink-0 ${
+              activeCategory === cat.slug ? 'bg-accent text-white border-accent shadow-sm' : 'bg-white border-border hover:border-accent text-ink'
+            }`}>
+            {cat.icon} {cat.name}
+          </button>
+        ))}
+      </div>
+      {overflows && (
+        <button onClick={() => setExpanded(!expanded)}
+          className="mt-1.5 text-xs font-semibold text-accent hover:text-accent-light transition-colors">
+          {expanded ? 'Show less ▲' : 'Show all categories ▼'}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function HomeClient({ reviews: initialReviews, categories }) {
   const [activeCategory, setActiveCategory] = useState(null);
@@ -38,18 +86,7 @@ export default function HomeClient({ reviews: initialReviews, categories }) {
               </a>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setActiveCategory(null)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${!activeCategory ? 'bg-accent text-white border-accent shadow-sm' : 'bg-white border-border hover:border-accent text-ink'}`}>
-              All
-            </button>
-            {(categories || []).map((cat) => (
-              <button key={cat.slug} onClick={() => setActiveCategory(cat.slug === activeCategory ? null : cat.slug)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${activeCategory === cat.slug ? 'bg-accent text-white border-accent shadow-sm' : 'bg-white border-border hover:border-accent text-ink'}`}>
-                {cat.icon} {cat.name}
-              </button>
-            ))}
-          </div>
+          <FilterBar categories={categories} activeCategory={activeCategory} onSelect={setActiveCategory} />
         </div>
       </header>
 
@@ -107,12 +144,12 @@ export default function HomeClient({ reviews: initialReviews, categories }) {
   );
 }
 
-// ─── Quick Post Card (existing layout with cover sidebar) ───
+// ─── Quick Post Card ───
 function QuickPostCard({ review, meta }) {
   const photos = typeof review.personalPhotos === 'string' ? JSON.parse(review.personalPhotos) : (review.personalPhotos || []);
   const metaEntries = Object.entries(meta).filter(([k, v]) => v && !k.startsWith('_'));
   const [expanded, setExpanded] = useState(false);
-  const isLong = (review.body || '').length > 400;
+  const isLong = (review.body || '').length > 300;
   const badgeClass = `cat-badge-${review.category?.slug || ''}`;
 
   return (
@@ -130,8 +167,11 @@ function QuickPostCard({ review, meta }) {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badgeClass}`}>{review.category?.icon} {review.category?.name}</span>
+            {review.rating != null && (
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getRatingColor(review.rating)}`}>{review.rating}</span>
+            )}
             <span className="text-xs text-muted">{new Date(review.publishedAt || review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
           <a href={`/r/${review.slug}`}>
@@ -145,11 +185,20 @@ function QuickPostCard({ review, meta }) {
           <div className="prose prose-sm max-w-none text-ink/80 leading-relaxed">
             {isLong && !expanded ? (
               <>
-                <ReactMarkdown>{(review.body || '').slice(0, 400) + '...'}</ReactMarkdown>
-                <button onClick={() => setExpanded(true)} className="text-accent text-sm font-medium mt-1 hover:text-accent-light transition-colors">Read more →</button>
+                <ReactMarkdown>{(review.body || '').slice(0, 300).replace(/\s+\S*$/, '') + '...'}</ReactMarkdown>
+                <button onClick={() => setExpanded(true)} className="text-accent text-sm font-medium mt-1 hover:text-accent-light transition-colors">
+                  Read more →
+                </button>
               </>
             ) : (
-              <ReactMarkdown>{review.body || ''}</ReactMarkdown>
+              <>
+                <ReactMarkdown>{review.body || ''}</ReactMarkdown>
+                {isLong && expanded && (
+                  <button onClick={() => setExpanded(false)} className="text-accent text-sm font-medium mt-1 hover:text-accent-light transition-colors">
+                    ← Show less
+                  </button>
+                )}
+              </>
             )}
           </div>
           {photos.length > 0 && (
@@ -158,11 +207,10 @@ function QuickPostCard({ review, meta }) {
             </div>
           )}
           {review.embedType && (
-            <span className="inline-block mt-3 text-xs bg-accent-wash text-accent px-2.5 py-1 rounded-lg font-medium">
-              {review.embedType === 'youtube' && '▶ Trailer available'}
-              {review.embedType === 'spotify' && '♫ Listen on Spotify'}
-              {review.embedType === 'qobuz' && '♫ Listen on Qobuz'}
-            </span>
+            <a href={`/r/${review.slug}`}
+              className="inline-block mt-3 text-xs bg-accent-wash text-accent px-2.5 py-1 rounded-lg font-medium hover:bg-accent/10 transition-colors">
+              See more →
+            </a>
           )}
         </div>
       </div>
@@ -170,29 +218,28 @@ function QuickPostCard({ review, meta }) {
   );
 }
 
-// ─── Full Post Card (article-style, full width) ───
+// ─── Full Post Card ───
 function FullPostCard({ review, meta }) {
   const metaEntries = Object.entries(meta).filter(([k, v]) => v && !k.startsWith('_'));
   const badgeClass = `cat-badge-${review.category?.slug || ''}`;
-
-  // For feed: show cover image as banner, truncated body, link to full article
   const bodyPreview = (review.body || '').split('\n').slice(0, 3).join('\n');
   const hasMore = (review.body || '').length > bodyPreview.length + 50;
 
   return (
     <article id={`review-${review.id}`} className="review-card bg-white rounded-xl border border-border overflow-hidden">
-      {/* Cover as banner */}
       {review.coverImage && (
         <a href={`/r/${review.slug}`}>
-          <img src={review.coverImage} alt={review.title}
-            className="w-full h-48 object-cover"
+          <img src={review.coverImage} alt={review.title} className="w-full h-48 object-cover"
             onError={(e) => { e.target.style.display = 'none'; }} />
         </a>
       )}
       <div className="p-6">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badgeClass}`}>{review.category?.icon} {review.category?.name}</span>
           <span className="text-xs bg-accent/10 text-accent px-1.5 py-0.5 rounded font-medium">Article</span>
+          {review.rating != null && (
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getRatingColor(review.rating)}`}>{review.rating}</span>
+          )}
           <span className="text-xs text-muted">{new Date(review.publishedAt || review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
         </div>
         <a href={`/r/${review.slug}`}>

@@ -42,6 +42,7 @@ export async function POST(req) {
       personalPhotos: JSON.stringify(data.personalPhotos || []),
       embedUrl: data.embedUrl || null,
       embedType: data.embedType || null,
+      rating: data.rating != null ? parseInt(data.rating, 10) : null,
       published: data.published || false,
       publishedAt,
       suggestionId: data.suggestionId || null,
@@ -77,6 +78,7 @@ export async function PUT(req) {
   if (updateData.personalPhotos !== undefined) update.personalPhotos = JSON.stringify(updateData.personalPhotos);
   if (updateData.embedUrl !== undefined) update.embedUrl = updateData.embedUrl;
   if (updateData.embedType !== undefined) update.embedType = updateData.embedType;
+  if (updateData.rating !== undefined) update.rating = updateData.rating != null ? parseInt(updateData.rating, 10) : null;
   if (updateData.publishedAt !== undefined) update.publishedAt = updateData.publishedAt ? new Date(updateData.publishedAt) : null;
   if (updateData.published !== undefined) {
     update.published = updateData.published;

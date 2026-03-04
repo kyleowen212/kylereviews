@@ -56,6 +56,9 @@ model Review {
   embedUrl    String?  // YouTube trailer URL, Qobuz/Spotify embed URL, etc.
   embedType   String?  // "youtube" | "qobuz" | "spotify" | "apple-music" | "none"
 
+  // Rating (0-100)
+  rating      Int?     // Whole integer 0-100, optional
+
   // Publishing
   published   Boolean  @default(false)
   publishedAt DateTime?
