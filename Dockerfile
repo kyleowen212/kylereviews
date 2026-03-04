@@ -14,8 +14,8 @@ RUN npx prisma generate
 ARG DATABASE_URL="file:./build-placeholder.db"
 RUN npx prisma db push --skip-generate 2>/dev/null; npm run build
 
-RUN mkdir -p /data public/uploads
+RUN mkdir -p /data/uploads
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node prisma/seed.js && npx next start -H 0.0.0.0 -p ${PORT:-3000}"]
+CMD ["sh", "-c", "mkdir -p /data/uploads && ln -sfn /data/uploads /app/public/uploads && npx prisma db push --skip-generate && node prisma/seed.js && npx next start -H 0.0.0.0 -p ${PORT:-3000}"]
