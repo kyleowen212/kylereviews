@@ -148,8 +148,8 @@ export default function HomeClient({ reviews: initialReviews, categories }) {
 function QuickPostCard({ review, meta }) {
   const photos = typeof review.personalPhotos === 'string' ? JSON.parse(review.personalPhotos) : (review.personalPhotos || []);
   const metaEntries = Object.entries(meta).filter(([k, v]) => v && !k.startsWith('_'));
-  const [expanded, setExpanded] = useState(false);
-  const isLong = (review.body || '').length > 300;
+  const bodyText = (review.body || '').replace(/\r\n/g, '\n');
+  const isLong = bodyText.length > 500;
   const badgeClass = `cat-badge-${review.category?.slug || ''}`;
 
   return (
@@ -184,21 +184,13 @@ function QuickPostCard({ review, meta }) {
           )}
           <div className="prose prose-sm max-w-none text-ink/80 leading-relaxed">
             {isLong && !expanded ? (
-              <>
-                <ReactMarkdown>{(review.body || '').slice(0, 300).replace(/\s+\S*$/, '') + '...'}</ReactMarkdown>
-                <button onClick={() => setExpanded(true)} className="text-accent text-sm font-medium mt-1 hover:text-accent-light transition-colors">
-                  Read more →
-                </button>
-              </>
+              <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p> }}>
+                {bodyText.slice(0, 500).replace(/\s+\S*$/, '') + '...'}
+              </ReactMarkdown>
             ) : (
-              <>
-                <ReactMarkdown>{review.body || ''}</ReactMarkdown>
-                {isLong && expanded && (
-                  <button onClick={() => setExpanded(false)} className="text-accent text-sm font-medium mt-1 hover:text-accent-light transition-colors">
-                    ← Show less
-                  </button>
-                )}
-              </>
+              <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p> }}>
+                {bodyText}
+              </ReactMarkdown>
             )}
           </div>
           {photos.length > 0 && (
@@ -206,7 +198,7 @@ function QuickPostCard({ review, meta }) {
               {photos.map((url, i) => (<img key={i} src={url} alt="" className="h-20 rounded-lg object-cover shadow-sm" />))}
             </div>
           )}
-          {review.embedType && (
+          {(isLong || review.embedType) && (
             <a href={`/r/${review.slug}`}
               className="inline-block mt-3 text-xs bg-accent-wash text-accent px-2.5 py-1 rounded-lg font-medium hover:bg-accent/10 transition-colors">
               See more →

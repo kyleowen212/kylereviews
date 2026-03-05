@@ -31,10 +31,16 @@ export async function POST(req) {
     publishedAt = data.publishedAt ? new Date(data.publishedAt) : new Date();
   }
 
+  // Look up category to get its slug for URL building
+  const category = await prisma.category.findUnique({ where: { id: data.categoryId } });
+  if (!category) return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
+
+  const slug = await uniqueSlug(data.title, category.slug, publishedAt || new Date(), prisma);
+
   const review = await prisma.review.create({
     data: {
       title: data.title,
-      slug: uniqueSlug(data.title),
+      slug,
       categoryId: data.categoryId,
       body: data.body || '',
       metadata: JSON.stringify(data.metadata || {}),
