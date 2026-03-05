@@ -183,7 +183,7 @@ function QuickPostCard({ review, meta }) {
             </p>
           )}
           <div className="prose prose-sm max-w-none text-ink/80 leading-relaxed">
-            {isLong && !expanded ? (
+            {isLong ? (
               <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p> }}>
                 {bodyText.slice(0, 500).replace(/\s+\S*$/, '') + '...'}
               </ReactMarkdown>
