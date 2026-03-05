@@ -129,6 +129,21 @@ export default function ReviewDetail({ review }) {
               className="rounded-xl" />
           </div>
         )}
+        {review.embedUrl && review.embedType === 'qobuz' && (
+          <div className="mb-8">
+            <iframe src={review.embedUrl} width="378" height="390" frameBorder="0"
+              className="rounded-xl"
+              allow="autoplay; encrypted-media" />
+          </div>
+        )}
+        {review.embedUrl && review.embedType === 'apple-music' && (
+          <div className="mb-8">
+            <iframe src={review.embedUrl} width="100%" height="450" frameBorder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              className="rounded-xl"
+              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation" />
+          </div>
+        )}
 
         <div className="pt-8 border-t border-border">
           <a href="/" className="text-accent hover:text-accent-light text-sm font-medium transition-colors">
