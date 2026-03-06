@@ -75,7 +75,7 @@ export default function HomeClient({ reviews: initialReviews, categories }) {
       <header className="sticky top-0 z-40 bg-paper/85 backdrop-blur-md" style={{ borderBottom: '2px solid #2956a8' }}>
         <div className="max-w-6xl mx-auto px-4 py-5 pb-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="font-display text-2xl tracking-tight">kyle<span className="text-accent">.reviews</span></h1>
+            <h1 className="font-display text-3xl tracking-tight">kyle<span className="text-accent">.reviews</span></h1>
             <div className="flex items-center gap-5 text-sm">
               <a href="/suggest" className="text-muted hover:text-accent transition-colors font-medium">Suggest</a>
               <a href="/api/rss" className="flex items-center gap-1 text-muted hover:text-accent transition-colors">
@@ -198,7 +198,35 @@ function QuickPostCard({ review, meta }) {
               {photos.map((url, i) => (<img key={i} src={url} alt="" className="h-20 rounded-lg object-cover shadow-sm" />))}
             </div>
           )}
-          {(isLong || review.embedType) && (
+          {/* Inline embeds */}
+          {review.embedUrl && review.embedType === 'youtube' && (
+            <div className="mt-4 aspect-video rounded-lg overflow-hidden shadow-sm">
+              <iframe src={review.embedUrl} className="w-full h-full" allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
+            </div>
+          )}
+          {review.embedUrl && review.embedType === 'spotify' && (
+            <div className="mt-4">
+              <iframe src={review.embedUrl} width="100%" height="152" frameBorder="0"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                className="rounded-lg" />
+            </div>
+          )}
+          {review.embedUrl && review.embedType === 'qobuz' && (
+            <div className="mt-4">
+              <iframe src={review.embedUrl} width="378" height="390" frameBorder="0"
+                className="rounded-lg" allow="autoplay; encrypted-media" />
+            </div>
+          )}
+          {review.embedUrl && review.embedType === 'apple-music' && (
+            <div className="mt-4">
+              <iframe src={review.embedUrl} width="100%" height="175" frameBorder="0"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                className="rounded-lg"
+                sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation" />
+            </div>
+          )}
+          {isLong && (
             <a href={`/r/${review.slug}`}
               className="inline-block mt-3 text-xs bg-accent-wash text-accent px-2.5 py-1 rounded-lg font-medium hover:bg-accent/10 transition-colors">
               See more →
@@ -253,6 +281,34 @@ function FullPostCard({ review, meta }) {
             {bodyPreview}
           </ReactMarkdown>
         </div>
+        {/* Inline embeds */}
+        {review.embedUrl && review.embedType === 'youtube' && (
+          <div className="mt-4 aspect-video rounded-lg overflow-hidden shadow-sm">
+            <iframe src={review.embedUrl} className="w-full h-full" allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
+          </div>
+        )}
+        {review.embedUrl && review.embedType === 'spotify' && (
+          <div className="mt-4">
+            <iframe src={review.embedUrl} width="100%" height="152" frameBorder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              className="rounded-lg" />
+          </div>
+        )}
+        {review.embedUrl && review.embedType === 'qobuz' && (
+          <div className="mt-4">
+            <iframe src={review.embedUrl} width="378" height="390" frameBorder="0"
+              className="rounded-lg" allow="autoplay; encrypted-media" />
+          </div>
+        )}
+        {review.embedUrl && review.embedType === 'apple-music' && (
+          <div className="mt-4">
+            <iframe src={review.embedUrl} width="100%" height="175" frameBorder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              className="rounded-lg"
+              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation" />
+          </div>
+        )}
         {hasMore && (
           <a href={`/r/${review.slug}`}
             className="inline-block mt-3 text-accent text-sm font-medium hover:text-accent-light transition-colors">

@@ -152,10 +152,23 @@ const categories = [
     }),
   },
   {
+    slug: 'video',
+    name: 'Video',
+    icon: '📹',
+    sortOrder: 12,
+    apiSource: 'none',
+    metaFields: JSON.stringify({
+      creator: { label: 'Creator / Channel', type: 'text' },
+      platform: { label: 'Platform', type: 'text' },
+      duration: { label: 'Duration', type: 'text' },
+      url: { label: 'URL', type: 'url' },
+    }),
+  },
+  {
     slug: 'game',
     name: 'Game',
     icon: '🎮',
-    sortOrder: 12,
+    sortOrder: 13,
     apiSource: 'none',
     metaFields: JSON.stringify({
       platform: { label: 'Platform', type: 'text' },
@@ -168,7 +181,7 @@ const categories = [
     slug: 'application',
     name: 'Application',
     icon: '💻',
-    sortOrder: 13,
+    sortOrder: 14,
     apiSource: 'none',
     metaFields: JSON.stringify({
       platform: { label: 'Platform', type: 'text' },

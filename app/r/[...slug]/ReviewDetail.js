@@ -27,7 +27,7 @@ export default function ReviewDetail({ review }) {
     <div className="min-h-screen bg-paper">
       <header style={{ borderBottom: '2px solid #2956a8' }} className="bg-white">
         <div className="max-w-3xl mx-auto px-4 py-4">
-          <a href="/" className="font-display text-xl text-ink hover:text-accent transition-colors">
+          <a href="/" className="font-display text-2xl text-ink hover:text-accent transition-colors">
             kyle<span className="text-accent">.reviews</span>
           </a>
         </div>

@@ -72,6 +72,7 @@ body {
 .cat-badge-link { background: #f0fdf4; color: #166534; }
 .cat-badge-game { background: #ecfdf5; color: #065f46; }
 .cat-badge-application { background: #f0f9ff; color: #0c4a6e; }
+.cat-badge-video { background: #fee2e2; color: #991b1b; }
 
 /* Prose link styling */
 .prose a {

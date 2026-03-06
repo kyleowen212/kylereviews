@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 
-const MANUAL_ONLY_SLUGS = ['experience', 'recipe', 'podcast', 'product', 'live-event', 'link', 'game', 'application'];
+const MANUAL_ONLY_SLUGS = ['experience', 'recipe', 'podcast', 'product', 'live-event', 'link', 'game', 'application', 'video'];
 
 // ─── Login ───
 function LoginForm({ onLogin }) {
