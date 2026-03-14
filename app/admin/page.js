@@ -744,6 +744,7 @@ export default function AdminDashboard() {
             <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">Admin</span>
           </div>
           <div className="flex items-center gap-4 text-sm">
+            <a href="/api/backup" className="text-muted hover:text-accent transition-colors">📦 Backup</a>
             <a href="/" target="_blank" className="text-muted hover:text-accent transition-colors">View Site →</a>
             <button onClick={handleLogout} className="text-muted hover:text-ink transition-colors">Log out</button>
           </div>

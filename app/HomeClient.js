@@ -53,11 +53,22 @@ function FilterBar({ categories, activeCategory, onSelect }) {
 
 export default function HomeClient({ reviews: initialReviews, categories }) {
   const [activeCategory, setActiveCategory] = useState(null);
+  const [activeRating, setActiveRating] = useState(null); // null or { min, max }
+
+  const RATING_TIERS = [
+    { label: 'Perfect', min: 100, max: 100 },
+    { label: 'Magnificent', min: 90, max: 99 },
+    { label: 'Fantastic', min: 80, max: 89 },
+    { label: 'Great', min: 70, max: 79 },
+    { label: 'Pretty Good', min: 60, max: 69 },
+  ];
 
   const reviews = initialReviews || [];
-  const filtered = activeCategory
-    ? reviews.filter((r) => r.category?.slug === activeCategory)
-    : reviews;
+  const filtered = reviews.filter((r) => {
+    if (activeCategory && r.category?.slug !== activeCategory) return false;
+    if (activeRating && (r.rating == null || r.rating < activeRating.min || r.rating > activeRating.max)) return false;
+    return true;
+  });
 
   const months = useMemo(() => {
     const map = new Map();
@@ -87,6 +98,21 @@ export default function HomeClient({ reviews: initialReviews, categories }) {
             </div>
           </div>
           <FilterBar categories={categories} activeCategory={activeCategory} onSelect={setActiveCategory} />
+          {/* Rating tier filter */}
+          <div className="flex flex-wrap gap-2 mt-2">
+            {RATING_TIERS.map((tier) => {
+              const isActive = activeRating && activeRating.min === tier.min && activeRating.max === tier.max;
+              return (
+                <button key={tier.label}
+                  onClick={() => setActiveRating(isActive ? null : tier)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all flex-shrink-0 ${
+                    isActive ? 'bg-ink text-white border-ink shadow-sm' : 'bg-white border-border hover:border-ink text-muted hover:text-ink'
+                  }`}>
+                  {tier.label} ({tier.min === tier.max ? tier.min : `${tier.min}–${tier.max}`})
+                </button>
+              );
+            })}
+          </div>
         </div>
       </header>
 
@@ -149,7 +175,7 @@ function QuickPostCard({ review, meta }) {
   const photos = typeof review.personalPhotos === 'string' ? JSON.parse(review.personalPhotos) : (review.personalPhotos || []);
   const metaEntries = Object.entries(meta).filter(([k, v]) => v && !k.startsWith('_'));
   const bodyText = (review.body || '').replace(/\r\n/g, '\n');
-  const isLong = bodyText.length > 500;
+  const isLong = bodyText.length > 1000;
   const badgeClass = `cat-badge-${review.category?.slug || ''}`;
 
   return (
@@ -185,7 +211,7 @@ function QuickPostCard({ review, meta }) {
           <div className="prose prose-sm max-w-none text-ink/80 leading-relaxed">
             {isLong ? (
               <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p> }}>
-                {bodyText.slice(0, 500).replace(/\s+\S*$/, '') + '...'}
+                {bodyText.slice(0, 1000).replace(/\s+\S*$/, '') + '...'}
               </ReactMarkdown>
             ) : (
               <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p> }}>
@@ -193,6 +219,13 @@ function QuickPostCard({ review, meta }) {
               </ReactMarkdown>
             )}
           </div>
+          {/* See more — above embeds */}
+          {isLong && (
+            <a href={`/r/${review.slug}`}
+              className="inline-block mt-2 mb-2 text-xs bg-accent-wash text-accent px-2.5 py-1 rounded-lg font-medium hover:bg-accent/10 transition-colors">
+              See more →
+            </a>
+          )}
           {photos.length > 0 && (
             <div className="flex gap-2 mt-3 flex-wrap">
               {photos.map((url, i) => (<img key={i} src={url} alt="" className="h-20 rounded-lg object-cover shadow-sm" />))}
@@ -225,12 +258,6 @@ function QuickPostCard({ review, meta }) {
                 className="rounded-lg"
                 sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation" />
             </div>
-          )}
-          {isLong && (
-            <a href={`/r/${review.slug}`}
-              className="inline-block mt-3 text-xs bg-accent-wash text-accent px-2.5 py-1 rounded-lg font-medium hover:bg-accent/10 transition-colors">
-              See more →
-            </a>
           )}
         </div>
       </div>
