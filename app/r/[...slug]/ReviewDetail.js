@@ -66,18 +66,11 @@ export default function ReviewDetail({ review }) {
 
           {/* Cover */}
           {review.coverImage && (
-            <div className="mb-8">
-              {isFullPost ? (
-                <img src={review.coverImage} alt={review.title}
-                  className="w-full rounded-xl object-cover"
-                  style={{ maxHeight: '400px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
-                  onError={(e) => { e.target.style.display = 'none'; }} />
-              ) : (
-                <img src={review.coverImage} alt={review.title}
-                  className="w-48 rounded-xl"
-                  style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
-                  onError={(e) => { e.target.style.display = 'none'; }} />
-              )}
+            <div className="mb-8 -mx-8 md:-mx-10">
+              <img src={review.coverImage} alt={review.title}
+                className="w-full object-cover"
+                style={{ maxHeight: '450px', borderRadius: 0 }}
+                onError={(e) => { e.target.style.display = 'none'; }} />
             </div>
           )}
 
