@@ -108,6 +108,9 @@ export default function ReviewDetail({ review }) {
                 p: ({ children }) => (
                   <p className="mb-4 leading-relaxed">{children}</p>
                 ),
+                blockquote: ({ children }) => (
+                  <blockquote className="border-l-4 border-accent pl-4 my-6 italic text-ink/70">{children}</blockquote>
+                ),
               }}
             >
               {processedBody}

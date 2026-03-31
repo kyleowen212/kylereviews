@@ -204,6 +204,8 @@ function MarkdownEditor({ value, onChange }) {
             className="px-2 py-1 border border-border rounded text-xs hover:bg-gray-50 transition-colors">🔗</button>
           <button onClick={() => insertAtCursor('\n\n---\n\n')}
             className="px-2 py-1 border border-border rounded text-xs hover:bg-gray-50 transition-colors">—</button>
+          <button onClick={() => insertAtCursor('\n\n> ')}
+            className="px-2 py-1 border border-border rounded text-xs hover:bg-gray-50 transition-colors">❝</button>
           <button onClick={() => setShowPreview(!showPreview)}
             className={`px-2 py-1 border rounded text-xs transition-colors ${showPreview ? 'bg-accent text-white border-accent' : 'border-border hover:bg-gray-50'}`}>
             {showPreview ? '✎ Edit' : '👁 Preview'}
@@ -217,6 +219,9 @@ function MarkdownEditor({ value, onChange }) {
             components={{
               img: ({ src, alt }) => (
                 <img src={src} alt={alt || ''} className="rounded-lg shadow-sm max-w-full my-4" style={{ maxHeight: '500px' }} />
+              ),
+              blockquote: ({ children }) => (
+                <blockquote className="border-l-4 border-accent pl-4 my-4 italic text-ink/70">{children}</blockquote>
               ),
             }}
           >

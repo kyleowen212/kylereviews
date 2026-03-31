@@ -210,11 +210,11 @@ function QuickPostCard({ review, meta }) {
           )}
           <div className="prose prose-sm max-w-none text-ink/80 leading-relaxed">
             {isLong ? (
-              <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p> }}>
+              <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p>, blockquote: ({ children }) => <blockquote className="border-l-4 border-accent pl-4 my-4 italic text-ink/70">{children}</blockquote> }}>
                 {bodyText.slice(0, 1000).replace(/\s+\S*$/, '') + '...'}
               </ReactMarkdown>
             ) : (
-              <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p> }}>
+              <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p>, blockquote: ({ children }) => <blockquote className="border-l-4 border-accent pl-4 my-4 italic text-ink/70">{children}</blockquote> }}>
                 {bodyText}
               </ReactMarkdown>
             )}
