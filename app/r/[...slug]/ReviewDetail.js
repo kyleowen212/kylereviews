@@ -64,15 +64,22 @@ export default function ReviewDetail({ review }) {
             </div>
           )}
 
-          {/* Cover */}
-          {review.coverImage && (
+          {/* Cover image — backdrop banner for movies/TV, or floated poster for everything else */}
+          {meta._backdrop ? (
             <div className="mb-8 -mx-8 md:-mx-10">
-              <img src={review.coverImage} alt={review.title}
+              <img src={meta._backdrop} alt={review.title}
                 className="w-full object-cover"
-                style={{ maxHeight: '450px', borderRadius: 0 }}
+                style={{ maxHeight: '400px' }}
                 onError={(e) => { e.target.style.display = 'none'; }} />
             </div>
-          )}
+          ) : review.coverImage ? (
+            <div className="mb-2">
+              <img src={review.coverImage} alt={review.title}
+                className="rounded-xl float-left mr-6 mb-4"
+                style={{ width: '180px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
+                onError={(e) => { e.target.style.display = 'none'; }} />
+            </div>
+          ) : null}
 
           {/* Body */}
           <div className={`prose max-w-none mb-8 ${isFullPost ? 'prose-lg' : 'prose-lg'}`}>
@@ -106,6 +113,9 @@ export default function ReviewDetail({ review }) {
               {processedBody}
             </ReactMarkdown>
           </div>
+
+          {/* Clear float from cover image */}
+          <div style={{ clear: 'both' }} />
 
           {/* Gallery photos (quick posts only) */}
           {!isFullPost && photos.length > 0 && (
