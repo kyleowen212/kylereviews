@@ -4,6 +4,41 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 
+// ─── Spoiler Support ───
+function SpoilerText({ children }) {
+  const [revealed, setRevealed] = useState(false);
+  return (
+    <span onClick={() => setRevealed(!revealed)}
+      className={`cursor-pointer rounded px-0.5 transition-all duration-200 ${revealed ? 'bg-transparent' : 'bg-ink/80 text-transparent select-none hover:bg-ink/60'}`}
+      title={revealed ? 'Click to hide' : 'Click to reveal spoiler'}>
+      {children}
+    </span>
+  );
+}
+
+function processSpoilers(text) {
+  return (text || '').replace(/\|\|(.+?)\|\|/g, '%%SPOILER_START%%$1%%SPOILER_END%%');
+}
+
+function renderSpoilerChildren(children) {
+  if (typeof children === 'string') {
+    const parts = children.split(/(%%SPOILER_START%%.*?%%SPOILER_END%%)/g);
+    if (parts.length === 1) return children;
+    return parts.map((part, i) => {
+      const match = part.match(/%%SPOILER_START%%(.+?)%%SPOILER_END%%/);
+      if (match) return <SpoilerText key={i}>{match[1]}</SpoilerText>;
+      return part;
+    });
+  }
+  if (Array.isArray(children)) {
+    return children.map((child) => {
+      if (typeof child === 'string') return renderSpoilerChildren(child);
+      return child;
+    });
+  }
+  return children;
+}
+
 const MANUAL_ONLY_SLUGS = ['experience', 'recipe', 'podcast', 'product', 'live-event', 'link', 'game', 'application', 'video'];
 
 // ─── Login ───
@@ -92,17 +127,20 @@ function CoverImageField({ value, onChange }) {
   );
 }
 
-// ─── Photo Upload Button (for Quick Post gallery) ───
+// ─── Photo Upload Button (for Quick Post gallery with captions) ───
 function PhotoUploader({ photos, onChange }) {
   const [uploading, setUploading] = useState(false);
+
+  // Normalize: accept both string URLs and {url, caption} objects
+  const normalized = photos.map((p) => typeof p === 'string' ? { url: p, caption: '' } : p);
 
   const handleUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     setUploading(true);
-    const newPhotos = [...photos];
+    const newPhotos = [...normalized];
     for (const file of files) {
-      try { newPhotos.push(await uploadFile(file)); }
+      try { newPhotos.push({ url: await uploadFile(file), caption: '' }); }
       catch (err) { console.error('Photo upload failed:', err); }
     }
     onChange(newPhotos);
@@ -110,16 +148,27 @@ function PhotoUploader({ photos, onChange }) {
     e.target.value = '';
   };
 
+  const updateCaption = (idx, caption) => {
+    const updated = [...normalized];
+    updated[idx] = { ...updated[idx], caption };
+    onChange(updated);
+  };
+
   return (
     <div>
       <label className="block text-xs font-medium text-muted mb-1 uppercase tracking-wide">Photos</label>
-      {photos.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-2">
-          {photos.map((url, i) => (
-            <div key={i} className="relative group">
-              <img src={url} alt="" className="h-16 w-16 object-cover rounded-lg border border-border" />
-              <button onClick={() => onChange(photos.filter((_, j) => j !== i))}
-                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs leading-none opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">×</button>
+      {normalized.length > 0 && (
+        <div className="space-y-2 mb-2">
+          {normalized.map((photo, i) => (
+            <div key={i} className="flex items-start gap-2 group">
+              <img src={photo.url} alt="" className="h-16 w-16 object-cover rounded-lg border border-border flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <input type="text" value={photo.caption || ''} onChange={(e) => updateCaption(i, e.target.value)}
+                  placeholder="Add caption..."
+                  className="w-full border border-border rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-accent/30" />
+              </div>
+              <button onClick={() => onChange(normalized.filter((_, j) => j !== i))}
+                className="text-red-400 hover:text-red-600 text-xs mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
             </div>
           ))}
         </div>
@@ -206,6 +255,8 @@ function MarkdownEditor({ value, onChange }) {
             className="px-2 py-1 border border-border rounded text-xs hover:bg-gray-50 transition-colors">—</button>
           <button onClick={() => insertAtCursor('\n\n> ')}
             className="px-2 py-1 border border-border rounded text-xs hover:bg-gray-50 transition-colors">❝</button>
+          <button onClick={() => insertAtCursor('||spoiler text||')}
+            className="px-2 py-1 border border-border rounded text-xs hover:bg-gray-50 transition-colors" title="Spoiler tag">🙈</button>
           <button onClick={() => setShowPreview(!showPreview)}
             className={`px-2 py-1 border rounded text-xs transition-colors ${showPreview ? 'bg-accent text-white border-accent' : 'border-border hover:bg-gray-50'}`}>
             {showPreview ? '✎ Edit' : '👁 Preview'}
@@ -223,9 +274,12 @@ function MarkdownEditor({ value, onChange }) {
               blockquote: ({ children }) => (
                 <blockquote className="border-l-4 border-accent pl-4 my-4 italic text-ink/70">{children}</blockquote>
               ),
+              p: ({ children }) => (
+                <p className="mb-3 leading-relaxed">{renderSpoilerChildren(children)}</p>
+              ),
             }}
           >
-            {value || '*Nothing here yet...*'}
+            {processSpoilers(value) || '*Nothing here yet...*'}
           </ReactMarkdown>
         </div>
       ) : (

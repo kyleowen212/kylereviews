@@ -1,7 +1,55 @@
 'use client';
-// app/HomeClient.js — v5: collapsible filters, ratings, truncated body, see more badge
+// app/HomeClient.js — v6: spoiler tags, article line breaks, full-width article covers
 import { useState, useMemo, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+
+// ─── Spoiler Tag Support ───
+// Syntax: ||spoiler text here|| (Discord-style)
+function SpoilerText({ children }) {
+  const [revealed, setRevealed] = useState(false);
+  return (
+    <span onClick={() => setRevealed(!revealed)}
+      className={`cursor-pointer rounded px-0.5 transition-all duration-200 ${revealed ? 'bg-transparent' : 'bg-ink/80 text-transparent select-none hover:bg-ink/60'}`}
+      title={revealed ? 'Click to hide' : 'Click to reveal spoiler'}>
+      {children}
+    </span>
+  );
+}
+
+function processSpoilers(text) {
+  // Replace ||spoiler|| with placeholder before markdown, then render after
+  return (text || '').replace(/\|\|(.+?)\|\|/g, '%%SPOILER_START%%$1%%SPOILER_END%%');
+}
+
+function renderSpoilerChildren(children) {
+  if (typeof children === 'string') {
+    const parts = children.split(/(%%SPOILER_START%%.*?%%SPOILER_END%%)/g);
+    if (parts.length === 1) return children;
+    return parts.map((part, i) => {
+      const match = part.match(/%%SPOILER_START%%(.+?)%%SPOILER_END%%/);
+      if (match) return <SpoilerText key={i}>{match[1]}</SpoilerText>;
+      return part;
+    });
+  }
+  if (Array.isArray(children)) {
+    return children.map((child, i) => {
+      if (typeof child === 'string') return renderSpoilerChildren(child);
+      return child;
+    });
+  }
+  return children;
+}
+
+// Shared markdown components with spoiler support
+const mdComponents = {
+  p: ({ children }) => <p className="mb-3 leading-relaxed">{renderSpoilerChildren(children)}</p>,
+  blockquote: ({ children }) => <blockquote className="border-l-4 border-accent pl-4 my-4 italic text-ink/70">{children}</blockquote>,
+  img: ({ src, alt }) => <img src={src} alt={alt || ''} className="rounded-lg shadow-sm max-w-full my-2" style={{ maxHeight: '300px' }} />,
+};
+
+function SpoilerMarkdown({ children }) {
+  return <ReactMarkdown components={mdComponents}>{processSpoilers(children)}</ReactMarkdown>;
+}
 
 function getRatingColor(rating) {
   if (rating >= 90) return 'bg-green-100 text-green-900';
@@ -210,13 +258,9 @@ function QuickPostCard({ review, meta }) {
           )}
           <div className="prose prose-sm max-w-none text-ink/80 leading-relaxed">
             {isLong ? (
-              <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p>, blockquote: ({ children }) => <blockquote className="border-l-4 border-accent pl-4 my-4 italic text-ink/70">{children}</blockquote> }}>
-                {bodyText.slice(0, 1000).replace(/\s+\S*$/, '') + '...'}
-              </ReactMarkdown>
+              <SpoilerMarkdown>{bodyText.slice(0, 1000).replace(/\s+\S*$/, '') + '...'}</SpoilerMarkdown>
             ) : (
-              <ReactMarkdown components={{ p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p>, blockquote: ({ children }) => <blockquote className="border-l-4 border-accent pl-4 my-4 italic text-ink/70">{children}</blockquote> }}>
-                {bodyText}
-              </ReactMarkdown>
+              <SpoilerMarkdown>{bodyText}</SpoilerMarkdown>
             )}
           </div>
           {/* See more — above embeds */}
@@ -269,8 +313,9 @@ function QuickPostCard({ review, meta }) {
 function FullPostCard({ review, meta }) {
   const metaEntries = Object.entries(meta).filter(([k, v]) => v && !k.startsWith('_'));
   const badgeClass = `cat-badge-${review.category?.slug || ''}`;
-  const bodyPreview = (review.body || '').split('\n').slice(0, 3).join('\n');
-  const hasMore = (review.body || '').length > bodyPreview.length + 50;
+  const bodyText = (review.body || '').replace(/\r\n/g, '\n');
+  const bodyPreview = bodyText.split('\n').slice(0, 3).join('\n');
+  const hasMore = bodyText.length > bodyPreview.length + 50;
 
   return (
     <article id={`review-${review.id}`} className="review-card bg-white rounded-xl border border-border overflow-hidden">
@@ -298,15 +343,7 @@ function FullPostCard({ review, meta }) {
           </p>
         )}
         <div className="prose prose-sm max-w-none text-ink/80 leading-relaxed">
-          <ReactMarkdown
-            components={{
-              img: ({ src, alt }) => (
-                <img src={src} alt={alt || ''} className="rounded-lg shadow-sm max-w-full my-2" style={{ maxHeight: '300px' }} />
-              ),
-            }}
-          >
-            {bodyPreview}
-          </ReactMarkdown>
+          <SpoilerMarkdown>{bodyPreview}</SpoilerMarkdown>
         </div>
         {/* Inline embeds */}
         {review.embedUrl && review.embedType === 'youtube' && (
