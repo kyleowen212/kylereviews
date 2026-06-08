@@ -127,6 +127,113 @@ function CoverImageField({ value, onChange }) {
   );
 }
 
+// ─── Season Picker (for TV shows) ───
+function SeasonPicker({ totalSeasons, tmdbId, currentSeason, onSeasonData }) {
+  const [loading, setLoading] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState(currentSeason || '');
+
+  const handleSeasonChange = async (seasonNum) => {
+    setSelectedSeason(seasonNum);
+    if (!seasonNum || !tmdbId) {
+      onSeasonData({ season: seasonNum });
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/search?action=season&tmdbId=${tmdbId}&season=${seasonNum}`);
+      const data = await res.json();
+      if (data && !data.error) {
+        onSeasonData({
+          season: `Season ${seasonNum}`,
+          poster: data.poster,
+          trailer: data.trailer,
+          cast: data.cast,
+          backdrops: data.backdrops,
+        });
+      } else {
+        onSeasonData({ season: `Season ${seasonNum}` });
+      }
+    } catch {
+      onSeasonData({ season: `Season ${seasonNum}` });
+    }
+    setLoading(false);
+  };
+
+  const options = [];
+  for (let i = 1; i <= (totalSeasons || 1); i++) options.push(i);
+
+  return (
+    <div>
+      <label className="block text-xs font-medium text-muted mb-1 uppercase tracking-wide">Season</label>
+      <div className="flex gap-2 items-center">
+        <select value={selectedSeason}
+          onChange={(e) => handleSeasonChange(e.target.value)}
+          className="flex-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30">
+          <option value="">Select season...</option>
+          {options.map((n) => (
+            <option key={n} value={n}>Season {n}</option>
+          ))}
+        </select>
+        {loading && <span className="text-xs text-muted">Loading...</span>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Backdrop Picker (for movies and TV shows) ───
+function BackdropPicker({ tmdbId, type, currentBackdrop, onSelect }) {
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const loadImages = async () => {
+    if (images.length > 0) { setOpen(!open); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/search?action=images&tmdbId=${tmdbId}&type=${type}`);
+      const data = await res.json();
+      setImages(data.backdrops || []);
+    } catch {
+      setImages([]);
+    }
+    setLoading(false);
+    setOpen(true);
+  };
+
+  if (!tmdbId) return null;
+
+  return (
+    <div>
+      <label className="block text-xs font-medium text-muted mb-1 uppercase tracking-wide">Banner Image</label>
+      {currentBackdrop && (
+        <div className="mb-2 relative group">
+          <img src={currentBackdrop} alt="Current backdrop" className="w-full h-20 object-cover rounded-lg"
+            onError={(e) => { e.target.style.display = 'none'; }} />
+          <button onClick={() => onSelect('')}
+            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">×</button>
+        </div>
+      )}
+      <button onClick={loadImages} disabled={loading}
+        className="text-xs border border-border px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+        {loading ? 'Loading...' : open ? 'Hide images ▲' : '🖼 Choose from TMDB images ▼'}
+      </button>
+      {open && images.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mt-2 max-h-48 overflow-y-auto rounded-lg border border-border p-2">
+          {images.map((img, i) => (
+            <button key={i} onClick={() => { onSelect(img.url); setOpen(false); }}
+              className={`rounded overflow-hidden border-2 transition-all ${currentBackdrop === img.url ? 'border-accent shadow-md' : 'border-transparent hover:border-accent/50'}`}>
+              <img src={img.thumb} alt="" className="w-full h-16 object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+      {open && images.length === 0 && !loading && (
+        <p className="text-xs text-muted mt-2">No backdrop images available for this title.</p>
+      )}
+    </div>
+  );
+}
+
 // ─── Photo Upload Button (for Quick Post gallery with captions) ───
 function PhotoUploader({ photos, onChange }) {
   const [uploading, setUploading] = useState(false);
@@ -466,11 +573,40 @@ function QuickPostForm({ categories, initialData, editMode, onSave, onCancel }) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="space-y-3">
               <Field label="Title" value={form.title} onChange={(v) => setForm({ ...form, title: v })} />
-              {Object.entries(metaFields).map(([key, field]) => (
-                <Field key={key} label={field.label} value={form.metadata[key] || ''}
-                  onChange={(v) => setForm({ ...form, metadata: { ...form.metadata, [key]: v } })} />
-              ))}
+              {Object.entries(metaFields).map(([key, field]) => {
+                // For TV shows, replace the season text field with SeasonPicker
+                if (key === 'season' && selectedCategory?.slug === 'tv-show' && form.metadata._tmdbId) {
+                  return (
+                    <SeasonPicker key={key}
+                      totalSeasons={form.metadata._totalSeasons || 1}
+                      tmdbId={form.metadata._tmdbId}
+                      currentSeason={form.metadata.season ? form.metadata.season.replace('Season ', '') : ''}
+                      onSeasonData={(data) => {
+                        const updates = { ...form.metadata, season: data.season || '' };
+                        const formUpdates = { metadata: updates };
+                        if (data.poster) formUpdates.coverImage = data.poster;
+                        if (data.trailer) { formUpdates.embedUrl = data.trailer; formUpdates.embedType = 'youtube'; }
+                        if (data.cast) updates.cast = data.cast;
+                        setForm((f) => ({ ...f, ...formUpdates, metadata: updates }));
+                      }}
+                    />
+                  );
+                }
+                return (
+                  <Field key={key} label={field.label} value={form.metadata[key] || ''}
+                    onChange={(v) => setForm({ ...form, metadata: { ...form.metadata, [key]: v } })} />
+                );
+              })}
               <CoverImageField value={form.coverImage} onChange={(v) => setForm({ ...form, coverImage: v })} />
+              {/* Backdrop picker for movies and TV shows */}
+              {(selectedCategory?.slug === 'movie' || selectedCategory?.slug === 'tv-show') && form.metadata._tmdbId && (
+                <BackdropPicker
+                  tmdbId={form.metadata._tmdbId}
+                  type={selectedCategory.slug === 'tv-show' ? 'tv' : 'movie'}
+                  currentBackdrop={form.metadata._backdrop || ''}
+                  onSelect={(url) => setForm({ ...form, metadata: { ...form.metadata, _backdrop: url } })}
+                />
+              )}
               <Field label="Embed URL" value={form.embedUrl} onChange={(v) => setForm({ ...form, embedUrl: v })} placeholder="YouTube, Qobuz, or Spotify" />
               <div>
                 <label className="block text-xs font-medium text-muted mb-1 uppercase tracking-wide">Embed Type</label>
@@ -585,11 +721,40 @@ function FullPostForm({ categories, initialData, editMode, onSave, onCancel }) {
       {/* Metadata fields for selected category */}
       {selectedCategory && Object.keys(metaFields).length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {Object.entries(metaFields).map(([key, field]) => (
-            <Field key={key} label={field.label} value={form.metadata[key] || ''}
-              onChange={(v) => setForm({ ...form, metadata: { ...form.metadata, [key]: v } })} />
-          ))}
+          {Object.entries(metaFields).map(([key, field]) => {
+            if (key === 'season' && selectedCategory?.slug === 'tv-show' && form.metadata._tmdbId) {
+              return (
+                <SeasonPicker key={key}
+                  totalSeasons={form.metadata._totalSeasons || 1}
+                  tmdbId={form.metadata._tmdbId}
+                  currentSeason={form.metadata.season ? form.metadata.season.replace('Season ', '') : ''}
+                  onSeasonData={(data) => {
+                    const updates = { ...form.metadata, season: data.season || '' };
+                    const formUpdates = { metadata: updates };
+                    if (data.poster) formUpdates.coverImage = data.poster;
+                    if (data.trailer) { formUpdates.embedUrl = data.trailer; formUpdates.embedType = 'youtube'; }
+                    if (data.cast) updates.cast = data.cast;
+                    setForm((f) => ({ ...f, ...formUpdates, metadata: updates }));
+                  }}
+                />
+              );
+            }
+            return (
+              <Field key={key} label={field.label} value={form.metadata[key] || ''}
+                onChange={(v) => setForm({ ...form, metadata: { ...form.metadata, [key]: v } })} />
+            );
+          })}
         </div>
+      )}
+
+      {/* Backdrop picker for movies and TV shows */}
+      {(selectedCategory?.slug === 'movie' || selectedCategory?.slug === 'tv-show') && form.metadata._tmdbId && (
+        <BackdropPicker
+          tmdbId={form.metadata._tmdbId}
+          type={selectedCategory.slug === 'tv-show' ? 'tv' : 'movie'}
+          currentBackdrop={form.metadata._backdrop || ''}
+          onSelect={(url) => setForm({ ...form, metadata: { ...form.metadata, _backdrop: url } })}
+        />
       )}
 
       {/* Cover image + date + rating row */}

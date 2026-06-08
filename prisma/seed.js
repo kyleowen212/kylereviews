@@ -27,7 +27,7 @@ const categories = [
     apiSource: 'tmdb',
     metaFields: JSON.stringify({
       creator: { label: 'Creator', type: 'text' },
-      seasons: { label: 'Seasons', type: 'text' },
+      season: { label: 'Season', type: 'text' },
       genre: { label: 'Genre', type: 'text' },
       cast: { label: 'Cast', type: 'text' },
       network: { label: 'Network', type: 'text' },
